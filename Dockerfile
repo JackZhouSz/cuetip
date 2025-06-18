@@ -28,8 +28,8 @@ WORKDIR /CueTip
 # Install python libraries
 RUN uv sync --all-extras --frozen
 
-# Fix PoolTool install for missing font
-RUN wget -O HackNerdFontMono-Regular.ttf https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Nerd%20Font%20Mono%20Regular.ttf
+# Fix PoolTool install for missing font, but allow failure if anything goes wrong
+RUN wget -O HackNerdFontMono-Regular.ttf https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFontMono-Regular.ttf
 RUN mv HackNerdFontMono-Regular.ttf /CueTip/.venv/lib/python3.10/site-packages/pooltool/ani/fonts/
 
 
