@@ -1,0 +1,90 @@
+# Global matplotlib configuration settings
+rcParams:
+  # Font settings
+  font.size: 24
+  axes.titlesize: 24
+  axes.labelsize: 24
+  xtick.labelsize: 24
+  ytick.labelsize: 24
+  legend.fontsize: 24
+
+  # Line settings
+  lines.linewidth: 2.5
+  lines.markersize: 10
+  errorbar.capsize: 5
+
+  # Grid settings
+  grid.alpha: 0.0
+  grid.linestyle: '--'
+
+# Style settings
+style: 'seaborn-v0_8-whitegrid'
+
+error_type: 'sem'
+
+# Colors list for different agents/plots
+colors:
+  - '#d15d08'  # Orange
+  - '#0474b4'  # Blue
+  - '#c783a6'  # Pink
+
+# Plot aesthetics
+aesthetics:
+  figure:
+    facecolor: 'white'
+    dpi: 300
+  axes:
+    facecolor: '#f8f9fa'
+    grid_alpha: 0.2
+    spine_color: '#333333'
+    spine_width: 1.5
+  
+  # Error regions
+  error_region:
+    alpha: 0.15
+  
+  # Legend settings
+  legend:
+    facecolor: 'white'
+    alpha: 1.0
+    shadow: true
+    fancybox: true
+
+# Agent name mappings
+agent_names:
+  ProRandomBallAgent: 'SP'
+  LanguageAgent: 'LA'
+  LanguageDEFAgent: 'LHA'
+  LanguageFunctionAgent: 'LNA'
+  FunctionAgent: 'NA'
+  PoolMasterAgent: 'PM'
+
+# Marker settings
+markers:
+  scatter: ['o', 's', 'D', '^', 'v', '>', '<', 'p', 'h']
+
+# Label settings
+labels:
+  padding: 10
+  title_padding: 20
+
+# Font settings
+fonts:
+  regular:
+    weight: 'normal'
+    size: 24
+  bold:
+    weight: 'bold'
+    size: 24
+  title:
+    weight: 'bold'
+    size: 24
+  tick:
+    weight: 'normal'
+    size: 24
+
+# Figure size presets
+figure_sizes:
+  default: [12, 8]
+  tall: [12, 18]
+  wide: [12, 8]

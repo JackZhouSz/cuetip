@@ -1,0 +1,43 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    13. Scratch Potential: Evaluate the layout for potential scratches. A valuable table state minimizes the risk of scratch shots while maximizing scoring opportunities.
+    """
+    
+    def calculate_scratch_potential(state: State, target_balls: List[str]) -> float:
+        cue_pos = state.get_ball_position('cue')
+        if np.isinf(cue_pos).any():  # Cue ball is potted
+            return 1.0  # Maximum scratch potential
+        
+        scratch_potential = 0.0
+        
+        # Check if cue ball is close to any pocket
+        for pocket in state.all_pocket_keys():
+            pocket_pos = state.get_pocket_position(pocket)
+            distance_to_pocket = np.linalg.norm(cue_pos - pocket_pos)
+            if distance_to_pocket < 0.2:  # Arbitrary threshold, adjust as needed
+                scratch_potential += 0.5
+        
+        # Check if cue ball has a clear path to any pocket
+        for pocket in state.all_pocket_keys():
+            pocket_pos = state.get_pocket_position(pocket)
+            if state.line_of_sight(cue_pos, pocket_pos):
+                scratch_potential += 0.1
+        
+        # Check if cue ball is positioned to likely hit opponent's ball first
+        opponent_balls = [ball for ball in state.all_ball_keys() if ball not in target_balls and ball != 'cue']
+        for ball in opponent_balls:
+            ball_pos = state.get_ball_position(ball)
+            if not np.isinf(ball_pos).any():
+                angle_to_opponent = state.angle_between_balls('cue', ball)
+                for target in target_balls:
+                    target_pos = state.get_ball_position(target)
+                    if not np.isinf(target_pos).any():
+                        angle_to_target = state.angle_between_balls('cue', target)
+                        if abs(angle_to_opponent) < abs(angle_to_target):
+                            scratch_potential += 0.2
+        
+        return min(scratch_potential, 1.0)  # Normalize to [0, 1]
+
+    scratch_potential = calculate_scratch_potential(final_state, target_balls)
+    evaluation = 1 - scratch_potential  # Higher value means lower scratch potential
+    return evaluation

@@ -1,0 +1,24 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    18. Multi-cushion Collision: It is exponentially difficult to pot a ball by having it bounce off multiple cushions.
+    """
+    
+    total_difficulty = 0.0
+    potted_balls = set()
+
+    # Find potted balls
+    for event in reversed(events):
+        if 'ball-pocket' in event.encoding:
+            potted_balls.add(event.arguments[0])
+
+    # For each potted ball, count ball-cushion collisions
+    for potted_ball in potted_balls:
+        for event in events:
+            if 'ball-cushion' in event.encoding and potted_ball in event.arguments:
+                total_difficulty += 1
+            elif 'ball-pocket' in event.encoding and potted_ball in event.arguments:
+                break  # Stop counting when we reach the potting event
+
+    normalized_difficulty = 2 / (1 + np.exp(-total_difficulty)) - 1.0
+
+    return normalized_difficulty

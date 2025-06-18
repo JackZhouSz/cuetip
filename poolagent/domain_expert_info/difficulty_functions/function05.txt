@@ -1,0 +1,27 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    5. English Requirements: Shots needing sidespin (English) are more difficult to control and execute. The use of English introduces additional variables that affect both aim and cue ball behavior after contact.
+    """
+
+    def calculate_english_difficulty(a: float, b: float) -> float:
+        # Calculate the distance from the center of the cue ball
+        # The cue ball radius is 1 
+        distance_from_center = np.sqrt(a**2 + b**2)
+        max_distance = np.sqrt(2)
+        
+        # Normalize the distance to a 0-1 scale
+        normalized_distance = distance_from_center / max_distance
+        
+        # Apply a non-linear scaling to emphasize difficulty as english increases
+        difficulty = normalized_distance ** 2
+        
+        return difficulty
+
+    # Extract the relevant shot parameters
+    a = shot['a']
+    b = shot['b']
+
+    # Calculate the difficulty based on English requirements
+    difficulty = calculate_english_difficulty(a, b)
+
+    return difficulty

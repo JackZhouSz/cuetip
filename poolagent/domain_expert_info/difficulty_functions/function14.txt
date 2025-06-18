@@ -1,0 +1,46 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    15. Deflection and Cue Ball Curve: When using English, especially at higher speeds or with an elevated cue, accounting for cue ball deflection and curve increases shot difficulty.
+    """
+    
+    def calculate_english_factor(a: float, b: float) -> float:
+        # Calculate the distance from the center of the cue ball
+        distance_from_center = np.sqrt(a**2 + b**2)
+        max_distance = np.sqrt(0.5)  # Maximum possible distance from center
+        
+        # Normalize the distance and apply a non-linear scaling
+        english_factor = (distance_from_center / max_distance) ** 2
+        return english_factor
+
+    def calculate_elevation_factor(theta: float) -> float:
+        # Convert theta to radians
+        theta_rad = np.radians(theta)
+        
+        # Calculate elevation factor (0 for horizontal shot, 1 for vertical shot)
+        elevation_factor = np.sin(theta_rad)
+        return elevation_factor
+
+    def calculate_speed_factor(V0: float) -> float:
+        max_speed = 5.0
+        speed_factor = min(V0 / max_speed, 1.0)
+        return speed_factor
+
+    # Extract relevant shot parameters
+    V0 = shot['V0']
+    theta = shot['theta']
+    a, b = shot['a'], shot['b']
+
+    # Calculate individual factors
+    english_factor = calculate_english_factor(a, b)
+    elevation_factor = calculate_elevation_factor(theta)
+    speed_factor = calculate_speed_factor(V0)
+
+    # Combine factors to estimate difficulty
+    difficulty = english_factor * elevation_factor * speed_factor
+
+    # Scale difficulty to be between 0 and 1
+    difficulty = max(difficulty, 0)
+    difficulty = 10 * difficulty
+    difficulty = 2 / (1 + np.exp(-2*difficulty)) - 1
+
+    return difficulty

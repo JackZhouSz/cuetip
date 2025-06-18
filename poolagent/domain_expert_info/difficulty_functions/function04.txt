@@ -1,0 +1,32 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    4. Rail Contact: Shots requiring the cue ball to hit a rail first (like rail cut shots) are more complex due to the need to account for rail dynamics and potential throw effects.
+    """
+    
+    cue_rail_contacts = 0
+    target_rail_contacts = 0
+    target_ball = None
+    first_ball_collision = False
+
+    for event in events:
+        if 'cushion' in event.encoding:
+            if not first_ball_collision:
+                cue_rail_contacts += 1
+            elif target_ball and target_ball in event.arguments:
+                target_rail_contacts += 1
+        elif event.encoding.startswith('ball-ball'):
+            if not first_ball_collision:
+                first_ball_collision = True
+                target_ball = event.arguments[1]  # The ball hit by the cue ball
+        elif event.encoding.startswith('ball-pocket'):
+            if target_ball and target_ball in event.arguments:
+                break  # Stop counting rail contacts when the target ball is pocketed
+
+    # Base difficulty
+    difficulty = 0.0
+
+    # Increase difficulty based on rail contacts
+    difficulty += 0.25 * cue_rail_contacts  # Each cue ball rail contact adds 0.2 to difficulty
+    difficulty += 0.25 * target_rail_contacts  # Each target ball rail contact adds 0.1 to difficulty
+
+    return 2 / (1 + np.exp(-2 * difficulty)) - 1

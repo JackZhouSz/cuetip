@@ -1,0 +1,53 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    6. Two-way Shot Possibilities: Look for shots that offer both offensive and defensive potential. These shots allow for pocketing a ball while also setting up a good defensive position if missed, providing strategic flexibility.
+    """
+    
+    def calculate_offensive_potential(state, ball, pockets):
+        offensive_score = 0
+        for pocket in pockets:
+            ball_pos = state.get_ball_position(ball)
+            pocket_pos = state.get_pocket_position(pocket)
+
+            if np.isnan(ball_pos).any() or np.isnan(pocket_pos).any():
+                continue
+
+            if state.line_of_sight(ball_pos, pocket_pos):
+                angle = abs(state.angle_to_pocket(ball, pocket))
+                distance = np.linalg.norm(ball_pos - pocket_pos)
+                offensive_score += np.exp(-angle / (np.pi/4.0)) * np.exp(-distance)
+        return offensive_score
+
+    def calculate_defensive_potential(state, cue_pos, target_balls):
+        defensive_score = 0
+        for ball in target_balls:
+            if not state.is_potted(ball):
+                ball_pos = state.get_ball_position(ball)
+
+                if np.isnan(ball_pos).any():
+                    continue
+
+                distance = np.linalg.norm(cue_pos - ball_pos)
+                angle = abs(state.angle_between_balls('cue', ball))
+                defensive_score += np.exp(-distance / (2*np.sqrt(5))) * (1 - np.exp(-angle / np.pi))
+        return defensive_score
+
+    def evaluate_two_way_shot(state, target_balls):
+        cue_pos = state.get_ball_position('cue')
+        pockets = state.all_pocket_keys()
+
+        if np.isnan(cue_pos).any():
+            return 0.0
+
+        max_defensive = len([ball for ball in target_balls if not state.is_potted(ball)])
+        max_offensive = 6 * max_defensive
+        if max_offensive == 0:
+            return 0.0
+        
+        offensive_potential = sum(calculate_offensive_potential(state, ball, pockets) for ball in target_balls if not state.is_potted(ball)) / max_offensive
+        defensive_potential = calculate_defensive_potential(state, cue_pos, target_balls) / max_defensive
+        
+        return offensive_potential * defensive_potential
+    
+    return evaluate_two_way_shot(final_state, target_balls)
+    

@@ -1,0 +1,95 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    9. Scratch Potential: Positions with a high risk of scratching are more difficult to play safely and effectively.
+    """
+
+    def distance(pos1, pos2):
+        if pos1 is None or pos2 is None:
+            return 1.0
+        return np.linalg.norm(np.array(pos1) - np.array(pos2))
+
+    def nearest_pocket_distance(pos):
+        return min(distance(pos, state.get_pocket_position(pocket)) 
+                   for pocket in state.all_pocket_keys())
+
+    def point_to_line_distance(point, line_start, line_end):
+        if np.all(line_start == line_end):
+            return distance(point, line_start)
+        line_vec = line_end - line_start
+        point_vec = point - line_start
+        line_len = np.linalg.norm(line_vec)
+        line_unitvec = line_vec / line_len
+        projection = np.dot(point_vec, line_unitvec)
+        if projection <= 0:
+            return np.linalg.norm(point_vec)
+        if projection >= line_len:
+            return np.linalg.norm(point - line_end)
+        return np.linalg.norm(point_vec - projection * line_unitvec)
+
+    difficulty = 0.0
+    target_ball = None
+    cue_cushion_events = []
+    non_target_cushion_events = []
+    POCKET_THRESHOLD = 0.15
+    FOUL_THRESHOLD = 0.05  # Threshold for considering a shot as a potential foul
+
+    # Identify non-target balls
+    non_target_balls = [ball for ball in state.all_ball_keys() if ball != 'cue' and ball not in target_balls]
+
+    # Track minimum distance between cue ball's path and non-target balls
+    min_distance_to_non_target = float('inf')
+    
+    # Initialize cue ball position
+    cue_pos = state.get_ball_position('cue')
+
+    if cue_pos is None or np.isnan(cue_pos).any():
+        return 0.0
+    
+    # Categorize events and calculate minimum distances
+    for event in events:
+        if 'ball-ball' in event.encoding and 'cue' in event.arguments:
+        
+            if target_ball is None:
+                target_ball = event.arguments[1]
+                for ball in non_target_balls:
+                    ball_pos = state.get_ball_position(ball)
+                    if ball_pos is None or np.isnan(ball_pos).any():
+                        continue
+                    path_distance = point_to_line_distance(ball_pos, cue_pos, np.array(event.pos))
+                    min_distance_to_non_target = min(min_distance_to_non_target, path_distance)
+                
+        elif 'cue' in event.arguments:
+
+            cue_cushion_events.append(event)
+
+            if target_ball is None:
+                for ball in non_target_balls:
+                    ball_pos = state.get_ball_position(ball)
+                    if ball_pos is None or np.isnan(ball_pos).any():
+                        continue
+                    path_distance = point_to_line_distance(ball_pos, cue_pos, np.array(event.pos))
+                    min_distance_to_non_target = min(min_distance_to_non_target, path_distance)
+                    
+            cue_pos = np.array(event.pos)  # Update cue position for next segment
+            
+        elif target_ball and 'ball-cushion' in event.encoding:
+            if target_ball not in event.arguments:
+                non_target_cushion_events.append(event)
+
+    # Calculate difficulty for cue ball cushion collisions
+    for event in cue_cushion_events:
+        min_distance = nearest_pocket_distance(event.pos)
+        if min_distance < POCKET_THRESHOLD:
+            difficulty += (POCKET_THRESHOLD - min_distance) / POCKET_THRESHOLD
+
+    # Calculate difficulty for target ball cushion collisions
+    for event in non_target_cushion_events:
+        min_distance = nearest_pocket_distance(event.pos)
+        if min_distance < POCKET_THRESHOLD:
+            difficulty += (POCKET_THRESHOLD - min_distance) / POCKET_THRESHOLD
+
+    # Add difficulty for potential fouls (close proximity to non-target balls)
+    if min_distance_to_non_target < FOUL_THRESHOLD:
+        difficulty += (FOUL_THRESHOLD - min_distance_to_non_target) / FOUL_THRESHOLD
+
+    return 2 / (1 + np.exp(-difficulty)) - 1.0

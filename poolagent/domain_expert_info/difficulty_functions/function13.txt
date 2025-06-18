@@ -1,0 +1,80 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    15. Throw Effects: Accounting for throw (both cut-induced and English-induced) adds complexity, especially on longer shots or those with significant cut angles.
+    """
+    
+    def calculate_throw_effect(distance: float, cut_angle: float, spin: float) -> float:
+        # Constants for throw effect calculation
+        CUT_INDUCED_FACTOR = 0.05
+        ENGLISH_INDUCED_FACTOR = 0.03
+        MAX_THROW_ANGLE = np.pi / 36  # 5 degrees
+
+        # Calculate cut-induced throw
+        cut_induced_throw = CUT_INDUCED_FACTOR * np.sin(2 * cut_angle)
+
+        # Calculate English-induced throw
+        english_induced_throw = ENGLISH_INDUCED_FACTOR * spin
+
+        # Combine throw effects
+        total_throw = min(cut_induced_throw + english_induced_throw, MAX_THROW_ANGLE)
+
+        # Adjust throw effect based on distance
+        distance_factor = distance 
+        throw_effect = total_throw * distance_factor
+
+        return throw_effect
+
+    # Find the first ball-ball collision event with the cue ball
+    target_ball = None
+    for event in events:
+        if event.encoding.startswith('ball-ball') and event.arguments[0] == 'cue':
+            target_ball = event.arguments[1]
+            break
+
+    if target_ball is None:
+        return 0.0  # No collision with any ball
+
+    # Check if the target ball is pocketed
+    target_ball_pocketed = False
+    pocket = None
+    for event in events:
+        if event.encoding.startswith('ball-pocket') and event.arguments[0] == target_ball:
+            target_ball_pocketed = True
+            pocket = event.arguments[1]
+            break
+
+    # Get positions
+    cue_pos = state.get_ball_position('cue')
+    target_pos = state.get_ball_position(target_ball)
+
+    # Check for NaN or inf values
+    if np.isnan(cue_pos).any() or np.isnan(target_pos).any() or np.isinf(cue_pos).any() or np.isinf(target_pos).any():
+        return 0.0
+
+    # Calculate distance from cue to target
+    cue_to_target = np.linalg.norm(target_pos - cue_pos) 
+
+    # Calculate cut angle
+    cue_to_target_angle = state.angle_between_balls('cue', target_ball)
+    if cue_to_target_angle is None or np.isinf(cue_to_target_angle):
+        return 0.0
+
+    # Estimate spin from shot parameters
+    spin = np.sqrt(shot['a']**2 + shot['b']**2)  # Simplified spin estimation
+
+    # Calculate throw effect
+    difficulty = calculate_throw_effect(cue_to_target, cue_to_target_angle, spin)
+
+    # Add cut angle difficulty only if the target ball is pocketed
+    if target_ball_pocketed and pocket is not None:
+        pocket_pos = state.get_pocket_position(pocket)
+        if not np.isnan(pocket_pos).any() and not np.isinf(pocket_pos).any():
+            target_to_pocket_angle = state.angle_to_pocket(target_ball, pocket)
+            if target_to_pocket_angle is not None and not np.isinf(target_to_pocket_angle):
+                cut_angle = abs(cue_to_target_angle - target_to_pocket_angle)
+                cut_angle_difficulty = cut_angle * cue_to_target
+                difficulty += cut_angle_difficulty
+
+    difficulty = max(0.0, difficulty)
+
+    return 2 / (1 + np.exp(-difficulty)) - 1.0

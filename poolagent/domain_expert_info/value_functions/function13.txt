@@ -1,0 +1,10 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    14. Above all, prioritise shots that pot the most target balls.
+    """
+    
+    starting_target_ball_count = sum([1.0 for ball in target_balls if not starting_state.is_potted(ball)])
+        
+    follow_up_target_ball_count = sum([1.0 for ball in target_balls if not final_state.is_potted(ball)])
+
+    return (starting_target_ball_count - follow_up_target_ball_count) / starting_target_ball_count

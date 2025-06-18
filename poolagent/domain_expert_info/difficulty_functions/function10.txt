@@ -1,0 +1,33 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    11. Massé (Curve) Shots: Difficulty increases with the amount of curve required. These shots demand precise control of both vertical and horizontal spin.
+    """
+    
+    def calculate_curve_factor(theta: float, a: float, b: float) -> float:
+        # Estimate the amount of curve based on shot parameters
+        vertical_spin = ((theta / 90) + abs(b) ) / 1.5
+        horizontal_spin = abs(a) * 2
+        
+        # Combine vertical and horizontal spin to get an overall curve factor
+        curve_factor = max(vertical_spin, horizontal_spin)
+        curve_factor *= 1 + vertical_spin*horizontal_spin
+        
+        return curve_factor
+
+    def normalize_difficulty(raw_difficulty: float) -> float:
+        # Normalize the difficulty to a 0-1 scale
+        return 1 - np.exp(-raw_difficulty)
+
+    # Extract relevant shot parameters
+    theta = shot['theta']
+    a = shot['a']
+    b = shot['b']
+
+    # Calculate the curve factor
+    curve_factor = calculate_curve_factor(theta, a, b)
+
+    # Estimate raw difficulty based on the curve factor
+    raw_difficulty = curve_factor  # Adjust the multiplier to scale the difficulty
+
+    # Normalize and return the final difficulty estimate
+    return 2 / ( 1 + np.exp(-2*raw_difficulty) ) - 1

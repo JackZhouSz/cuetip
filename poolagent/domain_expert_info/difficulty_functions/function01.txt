@@ -1,0 +1,71 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    1. Distance: Shot difficulty increases with greater distances between the cue ball, object ball, and pocket. Longer shots require more precise aim and speed control.
+    """
+    
+    def calculate_distance(pos1, pos2):
+        return np.linalg.norm(np.array(pos1) - np.array(pos2))
+
+    def check_pos_validity(pos):
+        
+        if pos is None or not pos[0] or not pos[1]:
+            return False
+
+        if isinstance(pos[0], str) or isinstance(pos[1], str):
+            return False
+
+        return True
+
+    cue_ball_positions = []
+    target_ball_distances = {}
+    potted_balls = set()
+
+    # Initial cue ball position
+    cue_ball_positions.append(state.get_ball_position('cue'))
+
+    for event in events:
+        if 'cue' in event.arguments:
+            cue_ball_positions.append(event.pos)
+        if event.encoding.startswith('ball-pocket'):
+            potted_ball = event.arguments[0]
+            potted_balls.add(potted_ball)
+            if potted_ball in target_ball_distances:
+                target_ball_distances[potted_ball].append(event.pos)
+        elif 'ball-cushion' in event.encoding:
+            ball = event.arguments[0]  
+            if not ball in target_ball_distances:
+                target_ball_distances[ball] = [event.pos]
+            else:
+                target_ball_distances[ball].append(event.pos)
+        elif 'ball-ball' in event.encoding:
+            ball = event.arguments[1]  
+            if not ball in target_ball_distances:
+                target_ball_distances[ball] = [event.pos]
+            else:
+                target_ball_distances[ball].append(event.pos)
+    
+    # Check validity of positions, remove if invalid
+    cue_ball_positions = [pos for pos in cue_ball_positions if check_pos_validity(pos)]
+    for ball, positions in target_ball_distances.items():
+        target_ball_distances[ball] = [pos for pos in positions if check_pos_validity(pos)]
+
+    # Calculate total distance for cue ball
+    cue_ball_distance = sum(calculate_distance(cue_ball_positions[i], cue_ball_positions[i+1]) 
+                            for i in range(len(cue_ball_positions) - 1))
+
+    # Calculate total distance for potted target balls
+    target_balls_distance = 0
+    if len(potted_balls) > 0:
+        target_balls_distance = sum(
+            sum(calculate_distance(positions[i], positions[i+1]) 
+                for i in range(len(positions) - 1))
+            for ball, positions in target_ball_distances.items() if ball in potted_balls
+        )
+
+    total_distance = cue_ball_distance + target_balls_distance
+
+    # Normalize the difficulty score
+    normalized_difficulty = total_distance 
+    normalized_difficulty = 2 / (1 + np.exp(- normalized_difficulty)) - 1
+
+    return normalized_difficulty

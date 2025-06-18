@@ -1,0 +1,51 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    2. Cut Angle: Larger cut angles are more challenging than straight or small angle shots. The margin for error decreases as the cut angle increases.
+    """
+
+    def find_potted_balls(events: List[Event]) -> List[str]:
+        return [event.arguments[0] for event in events if 'ball-pocket' in event.encoding]
+
+    def find_collision_events(events: List[Event], target_ball: str) -> Tuple[Event, Event, Event]:
+        e1 = next((event for event in events if 'ball-ball' in event.encoding and target_ball in event.arguments), None)
+        if not e1:
+            return None, None, None
+
+        e0 = next((event for event in reversed(events[:events.index(e1)]) if e1.arguments[0] in event.arguments), None)
+        e2 = next((event for event in events[events.index(e1)+1:] if target_ball in event.arguments), None)
+
+        return e0, e1, e2
+
+    def calculate_angle_difference(e0: Event, e1: Event, e2: Event) -> float:
+        if not all([e0, e1, e2]) or any(e.pos is None for e in [e0, e1, e2]):
+            return 0
+
+        v1 = np.array(e1.pos) - np.array(e0.pos)
+        v2 = np.array(e2.pos) - np.array(e1.pos)
+
+        if np.all(v1 == 0) or np.all(v2 == 0):
+            return 0
+
+        v1 = v1 / np.linalg.norm(v1)
+        v2 = v2 / np.linalg.norm(v2)
+        cos_angle = np.dot(v1, v2) 
+        cos_angle = np.clip(cos_angle, -0.999, 0.999)
+
+        return np.arccos(abs(cos_angle)) / (np.pi / 2)
+
+    def scale(x: float) -> float:
+        return 2 / (1 + np.exp(-x)) - 1
+
+    potted_balls = find_potted_balls(events)
+    if not potted_balls:
+        return 0.0  
+
+    total_angle_difference = 0.0
+    for ball in potted_balls:
+        e0, e1, e2 = find_collision_events(events, ball)
+        angle_diff = calculate_angle_difference(e0, e1, e2)
+        total_angle_difference += angle_diff
+    
+    # Scale the difficulty
+    return scale(total_angle_difference)
+

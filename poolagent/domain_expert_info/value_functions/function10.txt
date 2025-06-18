@@ -1,0 +1,80 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    11. Combination and Bank Shot Opportunities: While often more difficult, the presence of viable combination or bank shots can add value to a table state by providing additional options.
+    """
+    
+    def calculate_combination_shot_score(state: State, ball1: str, ball2: str, pocket: str) -> float:
+        if state.is_potted(ball1) or state.is_potted(ball2):
+            return 0.0
+        
+        ball1_pos = state.get_ball_position(ball1)
+        ball2_pos = state.get_ball_position(ball2)
+        pocket_pos = state.get_pocket_position(pocket)
+        
+        if np.isnan(ball1_pos).any() or np.isnan(ball2_pos).any() or np.isnan(pocket_pos).any():
+            return 0.0
+        
+        angle1 = state.angle_between_balls(ball1, ball2)
+        angle2 = state.angle_to_pocket(ball2, pocket)
+        
+        # Check if the balls are roughly in line for a combination shot
+        if abs(angle1 - angle2) < np.pi / 6:  # Allow for some deviation (30 degrees)
+            total_distance = np.linalg.norm(ball2_pos - ball1_pos) + np.linalg.norm(pocket_pos - ball2_pos)
+            return 1.0 / (total_distance + 1)
+        
+        return 0.0
+
+    def calculate_bank_shot_score(state: State, ball: str, pocket: str) -> float:
+        if state.is_potted(ball):
+            return 0.0
+        
+        ball_pos = state.get_ball_position(ball)
+        pocket_pos = state.get_pocket_position(pocket)
+        
+        if np.isnan(ball_pos).any() or np.isnan(pocket_pos).any():
+            return 0.0
+        
+        # Define rails as midpoints of table edges
+        table_width, table_height = state.table_width_height
+        rails = [
+            (0, 0.75 * table_height),  # Left top rail
+            (0, 0.25 * table_height),  # Left bottom rail
+            (table_width, 0.75 * table_height),  # Right top rail
+            (table_width, 0.25 * table_height),  # Right bottom rail
+            (0.5 * table_width, table_height),  # Top rail
+            (0.5 * table_width, 0)  # Bottom rail
+        ]
+        
+        max_score = 0.0
+        for rail in rails:
+            rail = np.array(rail)
+            reflected_pos = ball_pos + 2 * (rail - ball_pos)
+            distance = np.linalg.norm(rail - ball_pos) + np.linalg.norm(pocket_pos - rail)
+            score = 1.0 / (distance + 1)
+            max_score = max(max_score, score)
+        
+        return max_score
+
+    def evaluate_single_state(state: State) -> float:
+        balls = state.all_ball_keys()
+        pockets = state.all_pocket_keys()
+        
+        total_score = 0.0
+        total_count = 0
+        
+        # Evaluate combination shots
+        for i, ball1 in enumerate(balls):
+            for ball2 in balls[i+1:]:
+                for pocket in pockets:
+                    total_score += calculate_combination_shot_score(state, ball1, ball2, pocket)
+                    total_count += 1
+        
+        # Evaluate bank shots
+        for ball in balls:
+            for pocket in pockets:
+                total_score += calculate_bank_shot_score(state, ball, pocket)
+                total_count += 1
+        
+        return total_score / total_count if total_count > 0 else 0.0
+
+    return evaluate_single_state(final_state)

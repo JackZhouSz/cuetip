@@ -1,0 +1,15 @@
+{
+    "1": "Ball Groupings: Identify sets of two or more balls of the same type in close proximity that can be easily pocketed in sequence. These groupings increase the value of the table state as they allow for multiple shots without significant cue ball movement.",
+    "2": "Makable Regions: Assess areas on the table where balls can be pocketed without using kick or bank shots. Pay special attention to overlapping makable regions for multiple balls, as these areas offer the most versatility and shot options.",
+    "3": "Insurance Balls: Locate balls that can be easily pocketed from almost anywhere on the table. These serve as valuable backup options when positioning goes awry or when faced with a difficult layout.",
+    "4": "Break-up Opportunities: Evaluate clusters of balls that need separation. Shots that can break up these clusters while pocketing a ball or achieving good position are particularly valuable.",
+    "5": "Safety Opportunities: Identify chances to play defensive shots that leave the opponent in a difficult position. Good safety opportunities can be as valuable as offensive shots in many situations.",
+    "6": "Two-way Shot Possibilities: Look for shots that offer both offensive and defensive potential. These shots allow for pocketing a ball while also setting up a good defensive position if missed, providing strategic flexibility.",
+    "7": "Table Layout for Safeties: Assess the overall layout for defensive play. A valuable table state often includes options for effective safety plays if offensive shots become too risky.",
+    "8": "Multiple-ball Positions: Consider the arrangement of multiple balls that need to be pocketed in sequence. A valuable layout allows for natural progression from one ball to the next without difficult positional play.",
+    "9": "Avoidance Shots: Recognize balls that should be avoided to maintain a favorable layout or to leave the opponent in a difficult position. The ability to navigate around these balls adds value to the current state.",
+    "10": "Combination and Bank Shot Opportunities: While often more difficult, the presence of viable combination or bank shots can add value to a table state by providing additional options.",
+    "11": "Rail Proximity: Consider the position of balls near rails. While sometimes challenging, balls near rails can offer unique offensive or defensive opportunities.",
+    "12": "Scratch Potential: Evaluate the layout for potential scratches. A valuable table state minimizes the risk of scratch shots while maximizing scoring opportunities.",
+    "13": "Above all, prioritise shots that pot the most target balls."
+}

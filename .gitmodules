@@ -1,0 +1,5 @@
+[submodule "poolagent/deps/pooltool-text"]
+	path = poolagent/deps/pooltool-text
+	url = https://github.com/SeanMemery/pooltool-text
+[submodule "https://github.com/SeanMemery/pooltool-text"]
+	url = ./poolagent/deps/pooltool-text

@@ -1,0 +1,58 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    3. Obstacle Balls: The presence of other balls obstructing the path of the cue ball or object ball significantly increases shot difficulty.
+       This may require more precise positioning or the use of advanced techniques like cushion bounces.
+    """
+    
+    def distance(pos1, pos2):
+        return np.linalg.norm(np.array(pos1) - np.array(pos2))
+
+    cue_pos = state.get_ball_position('cue')
+    
+    if np.isinf(cue_pos).any():
+        return 1.0  # Maximum difficulty if cue ball position is invalid
+
+    difficulty = 0.0
+    cushion_bounces = 0
+    has_line_of_sight = False
+    potted_balls = []
+
+    for event in events:
+        if 'ball-ball' in event.encoding:
+            target_ball = event.arguments[1]  # The ball being hit
+            target_pos = state.get_ball_position(target_ball)
+            
+            if np.isinf(target_pos).any():
+                continue  # Skip this event if target ball position is invalid
+
+            # Check if there's a line of sight to the target ball
+            if state.line_of_sight(cue_pos, target_pos):
+                has_line_of_sight = True
+                break
+            else:
+                # If no line of sight, count the cushion bounces
+                cushion_events = [e for e in events if 'ball-cushion-cue' in e.encoding and events.index(e) < events.index(event)]
+                cushion_bounces = len(cushion_events)
+                break
+                
+    for event in events: 
+        if 'ball-pocket' in event.encoding and not 'cue' in event.arguments:
+            potted_ball = event.arguments[0]
+            potted_balls.append(potted_ball)
+
+    if has_line_of_sight:
+        difficulty = 0.0
+    else:
+        # Increase difficulty based on the number of cushion bounces needed
+        difficulty = cushion_bounces 
+
+    # Add difficulty for cushion bounces of potted balls
+    for ball in potted_balls:
+        pocketed_ball_events = [e for e in events if f'ball-cushion-{ball}' in e.encoding]
+        pocketed_ball_events += [e for e in events if f'ball-ball-{ball}' in e.encoding]
+        difficulty += len(pocketed_ball_events) 
+
+    # Normalize difficulty using a sigmoid function
+    difficulty = 2 / (1 + np.exp(-difficulty)) - 1
+
+    return difficulty

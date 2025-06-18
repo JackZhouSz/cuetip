@@ -1,0 +1,41 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    1. Ball Groupings: Identify sets of two or more balls of the same type in close proximity that can be easily pocketed in sequence. These groupings increase the value of the table state as they allow for multiple shots without significant cue ball movement.
+    """
+    
+    CLOSE_DISTANCE = 0.1
+
+    def distance(pos1, pos2):
+        return np.linalg.norm(pos1 - pos2)
+
+    def find_ball_groupings(state):
+        balls = [ball for ball in target_balls if not state.is_potted(ball)]
+        max_size = len(balls)
+        groupings = []
+        
+        for i in range(len(balls)):
+            group = [balls[i]]
+            for j in range(len(balls)):
+                if i == j:
+                    continue
+                if distance(state.get_ball_position(balls[i]), state.get_ball_position(balls[j])) < CLOSE_DISTANCE:
+                    group.append(balls[j])
+            if len(group) >= 2:
+                groupings.append(group)
+        
+        return groupings, max_size
+
+    
+
+    # Find groupings
+    groupings, max_size = find_ball_groupings(final_state)
+
+    if len(groupings) == 0:
+        rating = 0
+    else:
+        # Calculate rating based on groupings
+        rating = sum([len(group) ** 2 for group in groupings])  # Squaring to give more weight to larger groupings
+        rating /= max_size ** 3
+    
+    
+    return np.array(rating)

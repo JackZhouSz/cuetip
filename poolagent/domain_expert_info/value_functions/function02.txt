@@ -1,0 +1,49 @@
+def evaluate_states(starting_state: 'State', shots: list, final_state: 'State', target_balls: list) -> np.ndarray:
+    """
+    2. Makable Regions: Assess areas on the table where balls can be pocketed without using kick or bank shots. Pay special attention to overlapping makable regions for multiple balls, as these areas offer the most versatility and shot options.
+    """
+    
+    def calculate_makable_region(state, ball, pocket):
+        ball_pos = state.get_ball_position(ball)
+        pocket_pos = state.get_pocket_position(pocket)
+        
+        if np.isinf(ball_pos).any() or np.isinf(pocket_pos).any():
+            return 0
+        
+        distance = np.linalg.norm(ball_pos - pocket_pos)
+        angle = state.angle_to_pocket(ball, pocket)
+        
+        # Define a makable region based on distance and angle
+        max_distance = np.sqrt(5)
+        max_angle = np.pi / 4  # 45 degrees
+        
+        distance_factor = max(0, 1 - distance / max_distance)
+        angle_factor = max(0, 1 - abs(angle) / max_angle)
+        
+        return distance_factor * angle_factor
+
+    def count_overlapping_regions(state, ball, pockets, threshold=0.5):
+        overlaps = sum(1 for pocket in pockets 
+                    if calculate_makable_region(state, ball, pocket) > threshold)
+        return overlaps
+
+    def evaluate_state(state, target_balls):
+        all_pockets = state.all_pocket_keys()
+        
+        # Calculate the number of overlapping makable regions for each target ball
+        overlapping_regions = [count_overlapping_regions(state, ball, all_pockets) 
+                            for ball in target_balls if not state.is_potted(ball)]
+        
+        # Calculate the average number of overlapping regions
+        if overlapping_regions:
+            avg_overlapping_regions = np.mean(overlapping_regions)
+        else:
+            avg_overlapping_regions = 0
+        
+        # Normalize the score
+        max_possible_overlaps = len(all_pockets)
+        normalized_score = avg_overlapping_regions / max_possible_overlaps
+        
+        return normalized_score
+
+    return evaluate_state(final_state, target_balls)

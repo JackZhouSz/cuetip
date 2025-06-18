@@ -1,0 +1,47 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    7. Table Layout for Safeties: Assess the overall layout for defensive play. A valuable table state often includes options for effective safety plays if offensive shots become too risky.
+    """
+    
+    def calculate_safety_score(state: State, non_target_balls: List[str]) -> float:
+        safety_score = 0
+        cue_pos = state.get_ball_position('cue')
+
+        if np.isinf(cue_pos).any():  # Ball is potted
+            return 0
+        
+        for target in non_target_balls:
+            target_pos = state.get_ball_position(target)
+            
+            if np.isinf(target_pos).any():  # Target ball is potted
+                continue
+            
+            # Check if there's a direct line of sight between balls
+            if not state.line_of_sight(cue_pos, target_pos):
+                safety_score += 1
+                continue
+            
+            # Check angles to pockets
+            for pocket in state.all_pocket_keys():
+                skip = False
+                angle_diff = abs(state.angle_to_pocket('cue', pocket) - state.angle_to_pocket(target, pocket))
+                angle_diff = angle_diff / np.pi
+                if angle_diff < 0.25:
+                    skip = True
+                    break
+
+            # If any angle is less than 0.25, then there is an easy shot, so dont add any safety score, else add 1
+
+            if skip:
+                continue
+            safety_score += 1
+        
+        return safety_score 
+
+    non_target_balls = [ball for ball in final_state.all_ball_keys() if ball not in target_balls and ball != 'cue']
+
+    if len(non_target_balls) == 0:
+        return 0
+        
+    safety_score = calculate_safety_score(final_state, non_target_balls)
+    return 2 / (1 + np.exp(-safety_score)) - 1

@@ -1,0 +1,58 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    8. Rail Proximity: Balls very close to rails can be more difficult to hit cleanly and may require specialized techniques like rail cut shots or massé.
+    """
+    
+    THRESHOLD = 0.05  # Distance threshold for rail proximity (in meters)
+
+    def distance_to_nearest_rail(ball_position):
+        table_width, table_height = state.table_width_height[0], state.table_width_height[1]
+        distances = [
+            ball_position[0],  # distance to left rail
+            table_width - ball_position[0],  # distance to right rail
+            ball_position[1],  # distance to bottom rail
+            table_height - ball_position[1]  # distance to top rail
+        ]
+        return min(distances)
+
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    # Get the position of the cue ball
+    cue_ball_position = state.get_ball_position('cue')
+
+    # Check if the cue ball is on the table
+    if np.isinf(cue_ball_position).any():
+        return 1.0  # Maximum difficulty if the cue ball is not on the table
+
+    # Calculate the distance of the cue ball to the nearest rail
+    cue_ball_rail_distance = distance_to_nearest_rail(cue_ball_position)
+
+    # Find the first ball-ball collision event
+    target_ball = None
+    for event in events:
+        if event.encoding.startswith('ball-ball-cue-'):
+            target_ball = event.arguments[1]  # The ball hit by the cue ball
+            break
+
+    if target_ball is None:
+        return sigmoid((THRESHOLD - cue_ball_rail_distance) * 20)  # Only consider cue ball if no target ball is hit
+
+    # Get the position of the target ball
+    target_ball_position = state.get_ball_position(target_ball)
+
+    # Check if the target ball is on the table
+    if np.isinf(target_ball_position).any():
+        return 1.0  # Maximum difficulty if the target ball is not on the table
+
+    # Calculate the distance of the target ball to the nearest rail
+    target_ball_rail_distance = distance_to_nearest_rail(target_ball_position)
+
+    # Calculate difficulties for both balls
+    cue_difficulty = 1 - sigmoid((cue_ball_rail_distance - THRESHOLD) * 20)
+    target_difficulty = 1 - sigmoid((target_ball_rail_distance - THRESHOLD) * 20)
+
+    # Combine difficulties (giving slightly more weight to the cue ball proximity)
+    combined_difficulty = 0.6 * cue_difficulty + 0.4 * target_difficulty
+
+    return combined_difficulty

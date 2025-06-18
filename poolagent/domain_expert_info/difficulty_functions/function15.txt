@@ -1,0 +1,39 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    16. Multi-ball Collision: It is exponentially difficult to pot a ball by colliding it with multiple balls.
+    """
+    
+    total_difficulty = 0.0
+    balls_of_interest = set()
+
+    # Find potted balls
+    for event in reversed(events):
+        if 'ball-pocket' in event.encoding:
+            balls_of_interest.add(event.arguments[0])
+
+    # For each ball, count ball-ball collisions chain length
+    for ball in balls_of_interest:
+        for event in events[::-1]:
+            if 'ball-ball' in event.encoding and ball in event.arguments:
+                total_difficulty += 1
+
+    # Count the cue ball collisions with 
+    cue_hit_potted_ball = False
+    for event in events[::-1]:
+        if 'ball-ball' in event.encoding and 'cue' in event.arguments and event.arguments[1] in balls_of_interest:
+            cue_hit_potted_ball = True
+            continue
+
+        if not cue_hit_potted_ball:
+            continue
+
+        if 'ball-ball' in event.encoding and 'cue' in event.arguments:
+            total_difficulty += 1
+
+    if total_difficulty > 0:
+        # Remove one for an initial collisions
+        total_difficulty -= 1
+
+    normalized_difficulty = 2 / (1 + np.exp(-total_difficulty)) - 1.0
+
+    return normalized_difficulty

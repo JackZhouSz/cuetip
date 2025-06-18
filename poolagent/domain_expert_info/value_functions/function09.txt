@@ -1,0 +1,32 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    10. Avoidance Shots: Recognize balls that should be avoided to maintain a favorable layout or to leave the opponent in a difficult position. The ability to navigate around these balls adds value to the current state.
+    """
+
+    def scale(x):
+        return 2 / (1 + np.exp(-3*x)) - 1
+
+    THRESHOLD = 0.1  # Maximum distance between a ball and a pocket to be considered "near"
+
+    def count_balls_near_pockets(state: State, target_balls: List[str]) -> int:
+        count = 0
+        for ball in target_balls:
+            ball_pos = state.get_ball_position(ball)
+            if np.isinf(ball_pos).any():  # Ball is not on the table
+                continue
+            for pocket in state.all_pocket_keys():
+                pocket_pos = state.get_pocket_position(pocket)
+                distance = np.linalg.norm(ball_pos - pocket_pos)
+                if distance < THRESHOLD:
+                    count += 1
+                    break  # Count each ball only once
+        return count / len(target_balls)
+
+    if len(target_balls) == 0:
+        return 0
+
+    balls_near_pockets = count_balls_near_pockets(final_state, target_balls)
+    
+    scaled_value = scale(balls_near_pockets)
+    
+    return scaled_value

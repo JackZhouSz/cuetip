@@ -1,0 +1,37 @@
+models:
+  api:
+      - gpt-4o-mini
+      - gpt-4o
+  together:
+    text:
+      - together/meta-llama/Llama-3.2-3B-Instruct-Turbo
+      - together/meta-llama/Llama-3.3-70B-Instruct-Turbo
+      - together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo
+      - together/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
+      - together/meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo
+    vision:
+      - together/meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo
+      - together/meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo
+  local:
+    vision:
+      SMALL:
+        - llava-hf/llava-v1.6-mistral-7b-hf
+        - microsoft/Phi-3.5-vision-instruct
+      MEDIUM:
+        - llava-hf/llava-v1.6-vicuna-13b-hf
+        - llava-hf/llava-v1.6-34b-hf
+        - meta-llama/Llama-3.2-11B-Vision-Instruct
+      LARGE:
+        - meta-llama/Llama-3.2-90B-Vision-Instruct
+    text:
+      SMALL:
+        - meta-llama/Llama-3.2-3B-Instruct
+      MEDIUM:
+        - meta-llama/Llama-3.1-8B-Instruct
+      LARGE:
+        - meta-llama/Llama-3.1-70B-Instruct
+  custom:
+    - together/meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo
+    - gpt-4o
+
+optimisation_parallelism: False

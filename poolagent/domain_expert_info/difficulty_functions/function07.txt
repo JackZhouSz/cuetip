@@ -1,0 +1,29 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    7. Follow/Draw Needs: Shots requiring significant follow or draw are more difficult than natural roll shots. These shots demand precise vertical axis control of the cue ball.
+    """
+    
+    def calculate_follow_draw_difficulty(theta: float) -> float:
+        # Define the range for a "natural roll" shot
+        natural_roll_range = (10, 30)  # degrees
+        
+        # Convert theta to degrees for easier comparison
+        theta_degrees = theta
+        
+        if theta_degrees < natural_roll_range[0]:
+            # Draw shot: difficulty increases as angle decreases
+            return 1 - (theta_degrees / natural_roll_range[0])
+        elif theta_degrees > natural_roll_range[1]:
+            # Follow shot: difficulty increases as angle increases
+            return ((theta_degrees - natural_roll_range[1]) / (90 - natural_roll_range[1]))
+        else:
+            # Natural roll: lowest difficulty
+            return 0.0
+
+    # Extract the inclination angle (theta) from the shot dictionary
+    theta = shot['theta']
+    
+    # Calculate the difficulty based on the follow/draw needs
+    difficulty = calculate_follow_draw_difficulty(theta)
+    
+    return difficulty

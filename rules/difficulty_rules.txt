@@ -1,0 +1,17 @@
+##### Rules on Determining the Difficulty of a Pool Shot
+1. Distance: Shot difficulty increases with greater distances between the cue ball, object ball, and pocket. Longer shots require more precise aim and speed control.
+2. Cut Angle: Larger cut angles are more challenging than straight or small angle shots. The margin for error decreases as the cut angle increases.
+3. Obstacle Balls: The presence of other balls obstructing the path of the cue ball or object ball significantly increases shot difficulty. This may require more precise positioning or the use of advanced techniques.
+4. Rail Contact: Shots requiring the cue ball to hit a rail first (like rail cut shots) are more complex due to the need to account for rail dynamics and potential throw effects.
+5. English Requirements: Shots needing sidespin (English) are more difficult to control and execute. The use of English introduces additional variables that affect both aim and cue ball behavior after contact.
+6. Speed Control: Shots requiring precise speed control, whether very fast or very slow, are more challenging. Speed affects pocket geometry, throw, and positioning for the next shot.
+7. Follow/Draw Needs: Shots requiring significant follow or draw are more difficult than natural roll shots. These shots demand precise vertical axis control of the cue ball.
+8. Rail Proximity: Balls very close to rails can be more difficult to hit cleanly and may require specialized techniques like rail cut shots or massé.
+9. Scratch Potential: Positions with a high risk of scratching are more difficult to play safely and effectively.
+10. Curve Shots: Difficulty increases with the amount of curve required. These shots demand precise control of both vertical and horizontal spin.
+11. Frozen Ball Situations: Balls touching each other or touching a rail create unique challenges, often requiring precise speed and spin control.
+12. Multiple Effects: Shots involving a combination of factors (e.g., cut angle, speed, and English) are particularly challenging due to the need to account for multiple variables simultaneously.
+13. Throw Effects: Accounting for throw (both cut-induced and English-induced) adds complexity, especially on longer shots or those with significant cut angles.
+14. Deflection and Cue Ball Curve: When using English, especially at higher speeds or with an elevated cue, accounting for cue ball deflection and curve increases shot difficulty.
+15. Multi-ball Collision: It is exponentially difficult to pot a ball by colliding it with multiple balls.
+16. Multi-cushion Collision: It is exponentially difficult to pot a ball by having it bounce off multiple cushions.

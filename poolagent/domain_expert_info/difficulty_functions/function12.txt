@@ -1,0 +1,73 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    13. Multiple Effects: Shots involving a combination of factors (e.g., cut angle, speed, and English) are particularly challenging due to the need to account for multiple variables simultaneously.
+    """
+    
+    def calculate_cut_angle(cue_pos, target_pos, pocket_pos):
+        cue_to_target = target_pos - cue_pos
+        target_to_pocket = pocket_pos - target_pos
+        cross_product = np.cross(cue_to_target, target_to_pocket)
+        dot_product = np.dot(cue_to_target, target_to_pocket)
+        return np.abs(np.arctan2(cross_product, dot_product))
+
+    def calculate_cut_angle(cue_pos, target_pos, pocket_pos):
+        cue_to_target = target_pos - cue_pos
+        target_to_pocket = pocket_pos - target_pos
+        cross_product = np.cross(cue_to_target, target_to_pocket)
+        dot_product = np.dot(cue_to_target, target_to_pocket)
+        return np.abs(np.arctan2(cross_product, dot_product))
+
+    def calculate_english(a, b):
+        return np.sqrt(np.maximum(a**2 + b**2, 0))  # Ensure non-negative value
+
+    # Extract relevant information
+    cue_pos = state.get_ball_position('cue')
+    
+    # Find the first ball-ball collision involving the cue ball
+    target_ball = None
+    pocket = None
+    for event in events:
+        if event.encoding.startswith('ball-ball-cue-'):
+            target_ball = event.arguments[1]  # The ball hit by the cue ball
+            break
+    
+    if target_ball is None:
+        return 0.0  # Maximum difficulty if no valid collision found
+
+    target_pos = state.get_ball_position(target_ball)
+
+    # Find the first pocket event for the target ball, if it exists
+    for event in events:
+        if event.encoding.startswith(f'ball-pocket-{target_ball}-'):
+            pocket = event.arguments[1]
+            break
+
+    # Check for invalid positions
+    if np.isnan(cue_pos).any() or np.isinf(cue_pos).any() or np.isnan(target_pos).any() or np.isinf(target_pos).any():
+        return 0.0
+
+    # Calculate factors
+    speed = shot.get('V0', 0)
+    english = calculate_english(shot.get('a', 0), shot.get('b', 0))
+
+    # Normalize factors with safeguards
+    max_speed = 5
+    normalized_speed = speed / max_speed if max_speed != 0 else 0
+    normalized_english = english / 0.5 if english != 0 else 0  # Assuming radius of cue ball is 1 unit
+
+    if pocket:
+        pocket_pos = state.get_pocket_position(pocket)
+        cut_angle = calculate_cut_angle(cue_pos, target_pos, pocket_pos)
+        normalized_cut_angle = cut_angle / np.pi if np.pi != 0 else 0
+        
+        # Calculate difficulty based on all factors
+        difficulty = (normalized_cut_angle * 0.4 + 
+                      normalized_speed * 0.3 + 
+                      normalized_english * 0.3)
+    else:
+        # Calculate difficulty without cut angle
+        difficulty = (normalized_speed * 0.5 + 
+                      normalized_english * 0.5)
+
+    final_difficulty = 2 / (1 + np.exp(-2 * difficulty)) - 1  # Sigmoid function
+    return float(final_difficulty) if not np.isnan(final_difficulty) else 0.0

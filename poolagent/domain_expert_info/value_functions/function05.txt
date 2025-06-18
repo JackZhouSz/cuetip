@@ -1,0 +1,54 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    5. Safety Opportunities: Identify chances to play defensive shots that leave the opponent in a difficult position. Good safety opportunities can be as valuable as offensive shots in many situations.
+    """
+    
+    def normalize_scores(scores: np.ndarray) -> np.ndarray:
+        min_score = np.min(scores)
+        max_score = np.max(scores)
+        if max_score == min_score:
+            return np.ones_like(scores)
+        return (scores - min_score) / (max_score - min_score)
+
+    def calculate_safety_score(state: State, target_balls: List[str]) -> float:
+        cue_pos = state.get_ball_position('cue')
+        safety_score = 0.0
+
+        if np.isinf(cue_pos).any():
+            return safety_score
+        
+        for target in [ball for ball in state.all_ball_keys() if not ball in target_balls]:
+            if target == 'cue':
+                continue
+
+            target_pos = state.get_ball_position(target)
+            
+            # Check if the target ball is potted or off the table
+            if state.is_potted(target) or np.isinf(target_pos).any() or np.isnan(target_pos).any():
+                continue
+            
+            # Calculate distance between cue ball and target ball
+            distance = np.linalg.norm(cue_pos - target_pos)
+            
+            # Check line of sight between cue ball and target ball
+            has_line_of_sight = state.line_of_sight(cue_pos.tolist(), target_pos.tolist())
+            
+            # Calculate angles to pockets
+            pocket_angles = [state.angle_to_pocket(target, pocket) for pocket in state.all_pocket_keys()]
+            min_pocket_angle = min(pocket_angles)
+            
+            # Evaluate safety based on distance, line of sight, and angles
+            if not has_line_of_sight:
+                safety_score += 1.0  # No direct shot available
+            elif distance > np.sqrt(5) / 2:  
+                safety_score += 0.5  # Longer distance shots are harder
+            
+            if min_pocket_angle > np.pi / 4:  # 45 degrees
+                safety_score += 0.5  # Difficult angle to pocket
+        
+        return safety_score 
+
+    score = calculate_safety_score(final_state, target_balls)
+    scores = 2 / (1 + np.exp(-score / 2)) - 1  
+    return scores
+

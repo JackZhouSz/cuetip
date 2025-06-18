@@ -1,0 +1,50 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    8. Multiple-ball Positions: Consider the arrangement of multiple balls that need to be pocketed in sequence. A valuable layout allows for natural progression from one ball to the next without difficult positional play.
+    """
+
+    def scale(x):
+        return 2 / (1 + np.exp(-x)) - 1
+
+    def evaluate_follow_up(state: State, target_balls: List[str]) -> float:
+        cue_pos = state.get_ball_position('cue')
+        scores = []
+
+        for target_ball in target_balls:
+            if state.is_potted(target_ball):
+                continue
+
+            target_pos = state.get_ball_position(target_ball)
+
+            if np.isinf(target_pos).any() or np.isnan(target_pos).any():
+                continue
+            
+            # Check line of sight
+            if not state.line_of_sight(cue_pos, target_pos):
+                continue
+
+            for pocket in state.all_pocket_keys():
+                pocket_pos = state.get_pocket_position(pocket)
+
+                if np.isinf(pocket_pos).any() or np.isnan(pocket_pos).any():
+                    continue
+                
+                # Calculate angle differences
+                cue_to_target =  target_pos - cue_pos
+                target_to_pocket = pocket_pos - target_pos
+
+                angle_diff = abs(np.dot(cue_to_target, target_to_pocket)) / (np.linalg.norm(cue_to_target) * np.linalg.norm(target_to_pocket))
+
+                # Calculate distances
+                cue_to_target_distance = 1.0 - np.linalg.norm(target_pos - cue_pos) / np.sqrt(5)
+                target_to_pocket_distance = 1.0 - np.linalg.norm(pocket_pos - target_pos) / np.sqrt(5)
+
+                # Score based on angle difference and distances
+                score = angle_diff + cue_to_target_distance + target_to_pocket_distance  
+                
+                scores.append(score)
+
+        return scale(max(scores)) if scores else 0
+    
+    remaining_balls = [ball for ball in target_balls if not final_state.is_potted(ball)]
+    return evaluate_follow_up(final_state, remaining_balls)

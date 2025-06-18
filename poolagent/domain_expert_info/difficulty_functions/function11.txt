@@ -1,0 +1,46 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    12. Frozen Ball Situations: Balls touching each other or touching a rail create unique challenges, often requiring precise speed and spin control.
+    """
+
+    BALL_RADIUS = 0.0285 
+    DIST_MULT = 0.15
+    TABLE_WIDTH = state.table_width_height[0]
+    TABLE_HEIGHT = state.table_width_height[1]
+
+    def is_touching(pos1: np.ndarray, pos2: np.ndarray) -> bool:
+        return np.linalg.norm(pos1 - pos2) <= (2+DIST_MULT) * BALL_RADIUS
+
+    def is_touching_rail(pos: np.ndarray) -> bool:
+        return (
+            abs(pos[0]) <= 1.1 * BALL_RADIUS or     
+            abs(pos[0] - TABLE_WIDTH) <= (2+DIST_MULT) * BALL_RADIUS or
+            abs(pos[1]) <= 1.1 * BALL_RADIUS or
+            abs(pos[1] - TABLE_HEIGHT) <= (2+DIST_MULT) * BALL_RADIUS
+        )
+
+    # Get list of balls that cue ball hits 
+    balls_hit = [event.arguments[1] for event in events if 'ball-ball-cue' in event.encoding]
+
+    # Get the positions of all balls
+    ball_positions = {ball: state.get_ball_position(ball) for ball in balls_hit}
+
+    # Check for frozen ball situations
+    difficulty_score = 0
+    for ball, pos in ball_positions.items():
+    
+        if np.isinf(pos).any():
+            continue  # Skip balls that are not on the table
+
+        # Check if the ball is touching any other ball
+        for other_ball, other_pos in ball_positions.items():
+            if ball != other_ball and not np.isinf(other_pos).any():
+                if is_touching(pos, other_pos):
+                    difficulty_score += 1
+                    break
+
+        # Check if the ball is touching a rail
+        if is_touching_rail(pos):
+            difficulty_score += 1
+
+    return 2 / (1 + np.exp(-difficulty_score)) - 1.0

@@ -1,0 +1,68 @@
+def estimate_difficulty(state: State, shot: dict[str, float], events: List[Event], target_balls: List[str]) -> float:
+    """
+    6. Speed Control: Shots requiring precise speed control, whether very fast or very slow, are more challenging. 
+    """
+    
+    def calculate_path_length(positions):
+
+        positions = [pos for pos in positions if pos is not None]
+
+        return sum(np.linalg.norm(np.array(positions[i+1]) - np.array(positions[i])) 
+                   for i in range(len(positions) - 1))
+    
+    def speed_difficulty(speed, distance):
+        # Normalize speed to a 0-1 range
+        normalized_speed = min(speed / 5.0, 1.0)
+        
+        # Calculate difficulty based on speed and distance
+        if distance < 0.5:  # Short distances require more precise speed control
+            return 1 - (1 - normalized_speed) ** 2
+        elif distance > 1.5:  # Long distances are challenging at high speeds
+            return normalized_speed ** 2
+        else:  # Medium distances have a more linear difficulty
+            return normalized_speed
+
+    # Initialize variables
+    cue_ball_positions = [state.get_ball_position('cue')]
+    target_ball_positions = []
+    first_target_ball = None
+
+    # Process events to find cue ball path and first target ball hit
+    for event in events:
+        if event.encoding.startswith('ball-ball-cue-'):
+            first_target_ball = event.arguments[1]  # The ball hit by the cue ball
+            cue_ball_positions.append(event.pos)
+            target_ball_positions.append(state.get_ball_position(first_target_ball))
+            break
+        elif event.encoding.startswith('ball-') and 'cue' in event.arguments[0]:
+            cue_ball_positions.append(event.pos)
+
+    # If no target ball was hit, return maximum difficulty
+    if first_target_ball is None:
+        return 1.0
+
+    # Continue processing events to find target ball path
+    target_ball_path_started = False
+    for event in events:
+        if event.encoding.startswith(f'ball-') and event.arguments[0] == first_target_ball:
+            target_ball_positions.append(event.pos)
+            target_ball_path_started = True
+        elif target_ball_path_started and event.encoding.startswith('ball-ball-'):
+            # Stop if the target ball hits another ball
+            break
+
+    # Calculate the total distances
+    cue_ball_travel = calculate_path_length(cue_ball_positions)
+    target_ball_travel = calculate_path_length(target_ball_positions)
+
+    # Get initial velocity
+    initial_velocity = shot['V0']
+    
+    # Calculate difficulty based on speed control for both segments of the shot
+    difficulty_cue_travel = speed_difficulty(initial_velocity, cue_ball_travel)
+    difficulty_target_travel = speed_difficulty(initial_velocity * 0.8, target_ball_travel)  # Assume 20% speed loss on collision
+    
+    total_difficulty = difficulty_cue_travel + difficulty_target_travel
+    total_difficulty = 2 / (1 + np.exp(-2 * total_difficulty)) - 1
+    
+    return total_difficulty

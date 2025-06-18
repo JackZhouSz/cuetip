@@ -1,0 +1,72 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    4. Break-up Opportunities: Evaluate clusters of balls that need separation. Shots that can break up these clusters while achieving good positions are particularly valuable.
+    """
+    
+    def distance(pos1, pos2):
+        pos1 = np.array(pos1, dtype=float)
+        pos2 = np.array(pos2, dtype=float)
+        return np.linalg.norm(pos1 - pos2)
+
+    def find_clusters(state, max_distance=0.1):
+        balls = state.all_ball_keys()
+        clusters = []
+        
+        for ball in balls:
+            if ball == 'cue' or state.is_potted(ball):
+                continue
+            
+            pos = state.get_ball_position(ball)
+
+            if np.isinf(pos).any():
+                continue
+
+            added_to_cluster = False
+            
+            for cluster in clusters:
+                if any(distance(pos, state.get_ball_position(other_ball)) <= max_distance for other_ball in cluster):
+                    cluster.append(ball)
+                    added_to_cluster = True
+                    break
+            
+            if not added_to_cluster:
+                clusters.append([ball])
+        
+        return [c for c in clusters if len(c) > 1]
+
+    def evaluate_breakup(state, clusters, target_balls):
+        score = 0.0
+        for cluster in clusters:
+            cluster_size = len(cluster)
+            targets_in_cluster = sum(1 for ball in cluster if ball in target_balls)
+            
+            # Encourage breaking up clusters with target balls
+            score += targets_in_cluster * 2.0
+            
+            # Penalize large clusters
+            score -= cluster_size
+            
+            # Check if any ball in the cluster has a clear shot to a pocket
+            for ball in cluster:
+                for pocket in state.all_pocket_keys():
+                    if state.line_of_sight(state.get_ball_position(ball), state.get_pocket_position(pocket)):
+                        score += 1.0
+                        break
+        
+        return score
+
+    initial_clusters = find_clusters(starting_state)
+    
+    new_clusters = find_clusters(final_state)
+    
+    # Calculate the difference in cluster evaluation
+    initial_score = evaluate_breakup(starting_state, initial_clusters, target_balls)
+    new_score = evaluate_breakup(final_state, new_clusters, target_balls)
+    
+    cluster_breakup_score = new_score - initial_score
+    
+    # Normalize the score
+    max_possible_score = len(target_balls) * 3  # Maximum possible improvement
+    normalized_score = max(0, min(cluster_breakup_score / max_possible_score, 1))
+    
+    return normalized_score

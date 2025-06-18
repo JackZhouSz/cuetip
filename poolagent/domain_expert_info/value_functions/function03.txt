@@ -1,0 +1,44 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    3. Insurance Balls: Locate balls that can be easily pocketed from almost anywhere on the table. These serve as valuable backup options when positioning goes awry or when faced with a difficult layout.
+    """
+    
+    def calculate_pocketability(state: State, ball: str) -> float:
+        if state.is_potted(ball):
+            return 0.0  # Ball is already potted
+
+        ball_pos = state.get_ball_position(ball)
+        pocketability = 0.0
+        count = 0
+
+        for pocket in state.all_pocket_keys():
+            pocket_pos = state.get_pocket_position(pocket)
+            
+            if np.all(np.isfinite(ball_pos)) and np.all(np.isfinite(pocket_pos)):
+                count += 1
+                distance = np.linalg.norm(ball_pos - pocket_pos)
+                line_of_sight = state.line_of_sight(ball_pos.tolist(), pocket_pos.tolist())
+                angle = state.angle_to_pocket(ball, pocket)
+
+                # Increase pocketability for closer balls with clear line of sight
+                if line_of_sight:
+                    pocketability += 1 / (distance + 1)  # Avoid division by zero
+                
+                # Penalize sharp angles
+                pocketability -= abs(angle) / (np.pi * 2)
+
+        return max(0, pocketability / count) if count else 0
+
+    insurance_value = 0.0
+
+    count = 0
+    for ball in target_balls:
+        if ball != 'cue' and not final_state.is_potted(ball):
+            count += 1
+            insurance_value += calculate_pocketability(final_state, ball)
+        insurance_value = max(0, insurance_value) if count else 0
+
+    insurance_value /= count if count else 1
+
+    return insurance_value
+

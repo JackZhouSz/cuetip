@@ -1,0 +1,43 @@
+def evaluate_states(starting_state: State, shot: dict, final_state: State, target_balls: List[str]) -> np.ndarray:
+    """
+    12. Rail Proximity: Consider the position of balls near rails. While sometimes challenging, balls near rails can offer unique offensive or defensive opportunities.
+    """
+    
+    def distance_to_nearest_rail(state: State, ball: str) -> float:
+        position = state.get_ball_position(ball)
+        if np.isinf(position).any():  # Ball is not on the table
+            return np.inf
+        
+        table_x, table_y = state.table_width_height[0], state.table_width_height[1]
+        
+        distances = [
+            position[0],  # Distance to left rail
+            table_x - position[0],  # Distance to right rail
+            position[1],  # Distance to bottom rail
+            table_y - position[1]  # Distance to top rail
+        ]
+        
+        return min([abs(d) for d in distances])
+
+    MIN_DIST = 0.1  # Minimum distance to rail to be considered "near"
+    
+    rail_proximity_score = 0
+    
+    for ball in final_state.all_ball_keys():
+        if ball == 'cue':
+            continue  # Skip the cue ball
+        
+        distance = distance_to_nearest_rail(final_state, ball)
+        
+        if not np.isinf(distance):
+            # Score increases as the ball gets closer to the rail
+            # We use an exponential function to emphasize proximity
+            proximity_factor = np.exp(-15*distance) if distance < MIN_DIST else 0
+            
+            if ball in target_balls:
+                rail_proximity_score -= proximity_factor
+            else:
+                rail_proximity_score += proximity_factor
+    
+    rail_proximity_score = 1 / (1 + np.exp(-rail_proximity_score))  # Normalize score
+    return rail_proximity_score
