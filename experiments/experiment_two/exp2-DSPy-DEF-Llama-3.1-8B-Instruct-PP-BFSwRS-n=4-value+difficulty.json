@@ -1,0 +1,28 @@
+{
+"With $\\mathbf r_r$ (BFSwRS)": [
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED10-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED10-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED20-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED20-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED30-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED30-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED40-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED40-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED50-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED50-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED60-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED60-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED70-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED70-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED80-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED80-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED90-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED90-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithDEF-v4-percentages-SEED100-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithDEF-v4-percentages-SEED100-BFSwRS-n=4-CP10-1mL1d6-llama-3.1-8B-Instruct.json"]
+],
+
+"Without $\\mathbf r_r$ (BFSwRS)": [
+	["./results-values-ExplainDEFWithOutDEF-SEED10-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED10-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED20-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED20-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED30-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED30-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED40-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED40-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED50-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED50-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED60-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED60-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED70-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED70-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED80-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED80-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED90-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED90-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"],
+	["./results-values-ExplainDEFWithOutDEF-SEED100-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json","./results-difficulties-ExplainDEFWithOutDEF-SEED100-BFSwRS-n=4-1mL1d6-llama-3.1-8B-Instruct.json"]
+]
+}
+

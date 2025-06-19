@@ -1,0 +1,5 @@
+wandb login 9fde1637a9df403c0224
+export HUGGINGFACE_TOKEN=hf_mZrfwufnktylThJ
+export API_KEY=sk-proj-8uHoWMkIAdzRIDgiAZkvjiBoZWDv0mHHVqT
+export HEADLESS=true
+
