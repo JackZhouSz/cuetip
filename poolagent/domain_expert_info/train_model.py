@@ -2,7 +2,7 @@ import json
 import wandb
 from typing import Dict, Any
 import torch
-
+import argparse
 
 
 from poolagent.domain_expert_info.training import (
@@ -77,7 +77,7 @@ def validate_config(config: Dict[str, Any]) -> bool:
     
     return True
 
-def train_best_model(training_data: list, config: Dict[str, Any], save_path: str, config_save_path: str) -> None:
+def train_best_model(training_data: list, config: Dict[str, Any], save_path: str, config_save_path: str, args: Dict[str, Any] = {}) -> None:
     """
     Train a model with the specified configuration.
     
@@ -85,17 +85,19 @@ def train_best_model(training_data: list, config: Dict[str, Any], save_path: str
         training_data: List of training examples
         config: Model configuration dictionary
         save_path: Path to save the trained model
+        args: Dictionnary of parsed argument.
     """
     print("Initializing training with configuration:")
     for key, value in config.items():
         print(f"{key}: {value}")
     
     # Initialize wandb
-    wandb.init(
-        project="distribution_model_final",
-        config=config,
-        mode="online"  # Set to "disabled" to turn off wandb logging
-    )
+    if args.get('use_wandb', False):
+        wandb.init(
+            project="distribution_model_final",
+            config=config,
+            mode="online",  # Set to "disabled" to turn off wandb logging
+        )
     
     # Create model
     model = create_model(
@@ -167,13 +169,14 @@ def train_best_model(training_data: list, config: Dict[str, Any], save_path: str
             model, test_loader, LOSS_FN, config['input_type'])
         
         # Logging
-        wandb.log({
-            "epoch": epoch + 1,
-            "learning_rate": optimizer.param_groups[0]['lr'],
-            "train_loss": train_loss,
-            "test_loss": test_loss,
-            "test_exp_value_diff": test_exp_value_diff
-        })
+        if args.get('use_wandb', False):
+            wandb.log({
+                "epoch": epoch + 1,
+                "learning_rate": optimizer.param_groups[0]['lr'],
+                "train_loss": train_loss,
+                "test_loss": test_loss,
+                "test_exp_value_diff": test_exp_value_diff
+            })
         
         print(f"Epoch [{epoch+1}/{config['epochs']}]")
         print(f"Train Loss: {train_loss:.4f}, Test Loss: {test_loss:.4f}")
@@ -187,12 +190,19 @@ def train_best_model(training_data: list, config: Dict[str, Any], save_path: str
                 json.dump(config, f)
             print(f"Saved new best model with loss: {best_loss:.4f}")
     
-    wandb.finish()
+    if args.get('use_wandb', False):
+        wandb.finish()
     print("Training completed!")
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Neural Surrogate Model Training")
+    parser.add_argument("--use_wandb", action='store_true', help="Record training in W&B.")
+    args = vars(parser.parse_args())
+
     # Initialize wandb
-    wandb.login()
+    if args.get('use_wandb', False):
+        # Initialize wandb
+        wandb.login()
     
     # Load data
     print(f"Using device: {device}")
@@ -228,7 +238,7 @@ if __name__ == '__main__':
         
         # Train model
         print("\nStarting model training...")
-        train_best_model(training_data, config, model_path, config_path)
+        train_best_model(training_data, config, model_path, config_path, args=args)
 
         print("\nModel training completed successfully!")
         
@@ -238,4 +248,5 @@ if __name__ == '__main__':
     
     finally:
         # Ensure proper cleanup
-        wandb.finish()
+        if args.get('use_wandb', False):
+            wandb.finish()

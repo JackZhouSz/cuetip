@@ -1,13 +1,19 @@
 import wandb, torch, os
 
 from typing import Dict, Any
+import argparse
 
 from poolagent import load_data, train_best_model, validate_config, device
 from poolagent.path import DATA_DIR
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Neural Surrogate Model Training")
+    parser.add_argument("--use_wandb", action='store_true', help="Record training in W&B.")
+    args = vars(parser.parse_args())
+
     # Initialize wandb
-    wandb.login()
+    if args.get('use_wandb', False):
+        wandb.login()
     
     # Load data
     print(f"Using device: {device}")
@@ -44,7 +50,7 @@ if __name__ == '__main__':
         
         # Train model
         print("\nStarting model training...")
-        train_best_model(training_data, config, model_path, config_path)
+        train_best_model(training_data, config, model_path, config_path, args=args)
 
         print("\nModel training completed successfully!")
         

@@ -26,6 +26,7 @@ See our paper [here](https://arxiv.org/abs/2501.18291) for more details and come
 
 - Python 3.10+
 - Language model API key (e.g. OpenAI) or local LM
+- Optional: W&B account with authorize key
 
 ### Setup
 
@@ -46,6 +47,7 @@ uv venv
 ```bash
 uv sync --all-extras --frozen
 ```
+Optionally using the argument `--cache-dir=YOUR_CACHE_DIR` to specify a specific cache directory.
 
 4. **Note**: PoolTool may require a font that is not installed by default. You can install it by running:
 
@@ -56,16 +58,22 @@ mv HackNerdFontMono-Regular.ttf .venv/lib/python3.10/site-packages/pooltool/ani/
 
 ## Usage
 
+Optionally, before continuing, you may want to login with W&B as follows:
+```bash
+wandb login YOUR_WANDB_AUTHORIZE_KEY
+```
+
 ### Training
 
 Before running the examples, train the neural surrogate model:
 
 ```bash
-uv run train_neural_surrogate.py
+uv run train_neural_surrogate.py [--use_wandb]
 ```
 
 This model helps optimize shot parameters efficiently during simulation.
-
+If you have used the optional argument `--use_wandb` and have previously logged in, then you can check on the training of the neural surrogate model in your W&B account.
+ 
 
 ### Verify Installation
 
