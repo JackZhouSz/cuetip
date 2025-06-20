@@ -47,6 +47,13 @@ uv venv
 uv sync --all-extras --frozen
 ```
 
+4. **Note**: PoolTool may require a font that is not installed by default. You can install it by running:
+
+```bash
+wget -O HackNerdFontMono-Regular.ttf https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFontMono-Regular.ttf
+mv HackNerdFontMono-Regular.ttf .venv/lib/python3.10/site-packages/pooltool/ani/fonts/
+```
+
 ## Usage
 
 ### Training
